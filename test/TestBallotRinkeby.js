@@ -1,6 +1,6 @@
 var Ballot = artifacts.require("Ballot");
 
-contract('Ballot (testrpc network)', accounts => {
+contract("Ballot (rinkeby network)", accounts => {
   it("should be deployed", () => {
     return Ballot.deployed().then(ballot => {
       let address = ballot.address;
@@ -34,9 +34,9 @@ contract('Ballot (testrpc network)', accounts => {
     }).then(proposal => {
       third_name = web3.toUtf8(proposal[0]);
 
-      assert.equal(first_name, "Name 1", "Incorrect first candidate name in list");
-      assert.equal(second_name, "Name 2", "Incorrect second candidate name in list");
-      assert.equal(third_name, "Name 3", "Incorrect third candidate name in list");
+      assert.equal(first_name, "Arni", "Incorrect first candidate name in list");
+      assert.equal(second_name, "Alexa", "Incorrect second candidate name in list");
+      assert.equal(third_name, "Siri", "Incorrect third candidate name in list");
     });
   });
 
@@ -45,7 +45,7 @@ contract('Ballot (testrpc network)', accounts => {
 
     return Ballot.deployed().then(instance => {
       ballot = instance;
-      return ballot.giveRightToVote(accounts[1]);
+      return ballot.giveRightToVote(accounts[1], {from: accounts[0]});
     }).then(() => {
       return ballot.voters.call(accounts[1]);
     }).then(voter => {
@@ -82,7 +82,7 @@ contract('Ballot (testrpc network)', accounts => {
       return ballot.proposals.call(0);
     }).then(proposal => {
       numberOfVotesBefore = proposal[1].toNumber();
-      return ballot.vote(0);
+      return ballot.vote(0, {from: accounts[0]});
     }).then(() => {
       return ballot.proposals.call(0);
     }).then(proposal => {
@@ -114,7 +114,7 @@ contract('Ballot (testrpc network)', accounts => {
       let winner = web3.toUtf8(proposal);
 
       assert.equal(winnerNumber, 0, "Incorrect winner's candidate number");
-      assert.equal(winner, "Name 1", "Incorrect winner's name");
+      assert.equal(winner, "Arni", "Incorrect winner's name");
     });
   });
 
