@@ -1,4 +1,6 @@
 var Ballot = artifacts.require("Ballot");
+var expectThrow = require("./helpers/expectThrow.js");
+// var expect = require('chai').expect;
 
 contract('Ballot (testrpc network)', accounts => {
   it("should be deployed", async () => {
@@ -23,22 +25,18 @@ contract('Ballot (testrpc network)', accounts => {
     assert.equal(web3.toUtf8(thirdName[0]), "Name 3", "Incorrect third candidate name");
   });
 
-  it("should give rights to vote", async () => {
+  it("should give rights to vote, part(1)", async () => {
     let ballot = await Ballot.deployed();
 
-    // this must return error: "invalid opcode" such as accounts[1] don't have permissions.
-    await ballot.giveRightToVote(accounts[0], {from: accounts[1]}).then(() => {
-      console.log("\tWrong behavior of contract, \"accounts[1]\" should not have permissions for this operation such as it is not a chainperson");
-    }).catch(exception => { });
+    // this must return error: "invalid opcode" such as account don't have permissions.
+    await expectThrow(ballot.giveRightToVote(accounts[0], {from: accounts[1]}));
 
     // this must give permission for voting.
     await ballot.giveRightToVote(accounts[1], {from: accounts[0]});
     let voter = await ballot.voters.call(accounts[1]);
 
-    // this must return error: "invalid opcode" such as accounts[1] already has permission for voting.
-    await ballot.giveRightToVote(accounts[1], {from: accounts[0]}).then(() => {
-      console.log("\tWrong behavior of contract, accounts[1] should already has permission for voting");
-    }).catch(exception => { });
+    // this must return error: "invalid opcode" such as account already has permission for voting.
+    await expectThrow(ballot.giveRightToVote(accounts[1], {from: accounts[0]}));
 
     assert.equal(voter[0].toNumber(), 1, "The voter didn't get the permission to vote");
   });
@@ -51,28 +49,31 @@ contract('Ballot (testrpc network)', accounts => {
     let numberOfVotesAfter = (await ballot.proposals.call(0))[1].toNumber();
     let voter = await ballot.voters.call(accounts[1]);
 
-    // this must return exception such as "accounts[1]" has already voted
-    await ballot.vote(0, {from: accounts[1]}).then(() => {
-      console.log("\tWrong behavior of contract, \"accounts[1]\" has already voted");
-    }).catch(exception => { });
+    // this must return exception such as account has already voted
+    await expectThrow(ballot.vote(0, {from: accounts[1]}));
 
     assert.equal(numberOfVotesAfter - numberOfVotesBefore, voter[0].toNumber(), "Incorrect number of weight");
     assert.isTrue(voter[1], "The \"voted\" field has not changed");
     assert.equal(voter[3].toNumber(), 0, "Incorrect number of proposal");
   });
 
+  it("should give rights to vote, part(2)", async () => {
+    let ballot = await Ballot.deployed();
+
+    // this must return error: "invalid opcode" such as account already voted.
+    await ballot.giveRightToVote(accounts[1], {from: accounts[0]}).then(() => {
+      console.log("\tWrong behavior of contract, account has already voted");
+    }).catch(exception => { });
+  });
+
   it("should execute delegation", async () => {
     let ballot = await Ballot.deployed();
 
-    // this must return exception such as "accounts[1]" has already voted
-    await ballot.delegate(accounts[0], {from: accounts[1]}).then(() => {
-      console.log("\tWrong behavior of contract, \"accounts[1]\" has already voted so it can't delegete voted another person");
-    }).catch(exception => { });
+    // this must return exception such as account has already voted
+    await expectThrow(ballot.delegate(accounts[0], {from: accounts[1]}));
 
     // this must return exception such as account cannot delegate to itself
-    await ballot.delegate(accounts[0], {from: accounts[0]}).then(() => {
-      console.log("\tWrong behavior, account can't delegate to itself");
-    }).catch(exception => { });
+    await expectThrow(ballot.delegate(accounts[0], {from: accounts[0]}));
 
     // this must delegate properly
     await ballot.delegate(accounts[1], {from: accounts[0]});
