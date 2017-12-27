@@ -19,9 +19,9 @@ contract('Ballot (testrpc network)', accounts => {
     let secondName = await ballot.proposals.call(1);
     let thirdName = await ballot.proposals.call(2);
 
-    assert.equal(web3.toUtf8(firstName[0]), "Name 1", "Incorrect first candidate name");
-    assert.equal(web3.toUtf8(secondName[0]), "Name 2", "Incorrect second candidate name");
-    assert.equal(web3.toUtf8(thirdName[0]), "Name 3", "Incorrect third candidate name");
+    assert.equal(web3.toUtf8(firstName[0]), "Arni", "Incorrect first candidate name");
+    assert.equal(web3.toUtf8(secondName[0]), "Alexa", "Incorrect second candidate name");
+    assert.equal(web3.toUtf8(thirdName[0]), "Siri", "Incorrect third candidate name");
   });
 
   it("should give rights to vote, part(1)", async () => {
@@ -60,9 +60,7 @@ contract('Ballot (testrpc network)', accounts => {
     let ballot = await Ballot.deployed();
 
     // this must return error: "invalid opcode" such as account already voted.
-    await ballot.giveRightToVote(accounts[1], {from: accounts[0]}).then(() => {
-      console.log("\tWrong behavior of contract, account has already voted");
-    }).catch(exception => { });
+    await expectThrow(ballot.giveRightToVote(accounts[1], {from: accounts[0]}));
   });
 
   it("should execute delegation", async () => {
@@ -88,7 +86,7 @@ contract('Ballot (testrpc network)', accounts => {
     let winnerProposalName = await ballot.winnerName.call();
 
     assert.equal(winnerProposalNumber, 0, "Incorrect winner's number");
-    assert.equal(web3.toUtf8(winnerProposalName), "Name 1", "Incorrect winner's name");
+    assert.equal(web3.toUtf8(winnerProposalName), "Arni", "Incorrect winner's name");
   });
 
 });
