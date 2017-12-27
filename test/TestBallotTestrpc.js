@@ -1,6 +1,5 @@
 var Ballot = artifacts.require("Ballot");
 var expectThrow = require("./helpers/expectThrow.js");
-// var expect = require('chai').expect;
 
 contract('Ballot (testrpc network)', accounts => {
   it("should be deployed", async () => {
